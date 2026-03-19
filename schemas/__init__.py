@@ -1,5 +1,3 @@
-from schemas.comentario import ComentarioSchema
-from schemas.produto import ProdutoSchema, ProdutoBuscaSchema, ProdutoViewSchema, \
-                            ListagemProdutosSchema, ProdutoDelSchema, apresenta_produtos, \
-                            apresenta_produto, apresenta_produtos
+from schemas.owner import OwnerSchema, OwnerSearchSchema, ListOwnersSchema, show_owners, OwnerViewSchema, show_owner, OwnerDelSchema
+from schemas.property import PropertySchema, PropertySchema, ListPropertiesSchema, show_properties, PropertyViewSchema, show_property, PropertyDelSchema
 from schemas.error import ErrorSchema

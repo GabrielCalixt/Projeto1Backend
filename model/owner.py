@@ -11,7 +11,6 @@ class Owner(Base):
     name = Column(String(140), unique=True)
     email = Column(String(280), unique=True)
     phone = Column(String(20))
-    password = Column(String(20))
     properties = relationship(
         "Property",
         back_populates="owner",
@@ -19,7 +18,7 @@ class Owner(Base):
         lazy="dynamic",
     )
 
-    def __init__(self, name:str, email:str, phone:str, password:str):
+    def __init__(self, name:str, email:str, phone:str | int):
         """
         Cria um Proprietário
 
@@ -31,4 +30,3 @@ class Owner(Base):
         self.name = name
         self.email = email
         self.phone = phone
-        self.password = password

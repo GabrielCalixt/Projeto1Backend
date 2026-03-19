@@ -1,14 +1,13 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Union
 from model.owner import Owner
 
 class OwnerSchema(BaseModel):
     """ Define como um novo proprietário a ser inserido deve ser representado
     """
-    name: str = "John Doe"
-    email: str = "john.doe@example.com"
-    phone: str = "1234567890"
-    password: str = "password123"
+    name: str
+    email: str
+    phone: int | str
 
 
 class OwnerSearchSchema(BaseModel):
@@ -34,6 +33,7 @@ def show_owners(owners: List[Owner]):
             "name": owner.name,
             "email": owner.email,
             "phone": owner.phone,
+            "id": owner.id
         })
 
     return {"owners": result}

@@ -1,23 +1,28 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from model.owner import Owner
+from datetime import datetime
+
+from model.property import Property
 
 class PropertySchema(BaseModel):
     """ Define como uma nova propriedade a ser inserida deve ser representada
     """
-    name: str = "Casa dos Sonhos"
-    description: str = "Uma casa maravilhosa com vista para o mar."
-    rent_value: float = 2500.00
-    due_date: Optional[str] = None
-    type: str = "house"
-    owner_id: int = 1
-
+    title: str
+    value: float
+    type: str
+    owner_id: int
+    address: str
+    status: str
+    area: int
+    rooms: int
+    bathrooms: int
 
 class PropertySearchSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca. Que será
         feita apenas com base no nome da propriedade.
     """
-    name: str = "Casa dos Sonhos"
+    title: str = "Casa dos Sonhos"
 
 
 class ListPropertiesSchema(BaseModel):
@@ -26,19 +31,22 @@ class ListPropertiesSchema(BaseModel):
     properties: List[PropertySchema]
 
 
-def show_properties(properties: List[PropertySchema]):
+def show_properties(properties: List[Property]):
     """ Retorna uma representação da propriedade seguindo o schema definido em
         PropertyViewSchema.
     """
     result = []
     for property in properties:
         result.append({
-            "name": property.name,
-            "description": property.description,
-            "rent_value": property.rent_value,
-            "due_date": property.due_date,
+            "title": property.title,
+            "value": property.value,
             "type": property.type,
-            "owner_id": property.owner_id
+            "owner_id": property.owner_id,
+            "address": property.address,
+            "status": property.status,
+            "area": property.area,
+            "rooms": property.rooms,
+            "bathrooms": property.bathrooms
         })
 
     return {"properties": result}
@@ -47,10 +55,15 @@ def show_properties(properties: List[PropertySchema]):
 class PropertyViewSchema(BaseModel):
     """ Define como um imóvel será retornado: imóvel + comentários.
     """
-    id: int = 1
-    name: str = "John Doe"
-    email: str = "john.doe@example.com"
-    phone: str = "1234567890"
+    title: str = "Casa dos Sonhos"
+    value: float = 500000.00
+    type: str = "house"
+    owner_id: int = 1
+    address: str = "Rua dos Sonhos, 123"
+    status: str = "available"
+    area: int = 200
+    rooms: int = 4
+    bathrooms: int = 3
 
 
 class PropertyDelSchema(BaseModel):
@@ -58,17 +71,20 @@ class PropertyDelSchema(BaseModel):
         de remoção.
     """
     message: str
-    name: str
+    title: str
 
 def show_property(property: PropertySchema):
     """ Retorna uma representação do imóvel seguindo o schema definido em
         PropertyViewSchema.
     """
     return {
-        "name": property.name,
-        "description": property.description,
-        "rent_value": property.rent_value,
-        "due_date": property.due_date,
+        "title": property.title,
+        "value": property.value,
         "type": property.type,
-        "owner_id": property.owner_id
+        "owner_id": property.owner_id,
+        "address": property.address,
+        "status": property.status,
+        "area": property.area,
+        "rooms": property.rooms,
+        "bathrooms": property.bathrooms
     }
