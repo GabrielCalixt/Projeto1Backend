@@ -1,8 +1,7 @@
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship
 
-from  model import Base
-
+from model import Base
 
 class Owner(Base):
     __tablename__ = 'owner'

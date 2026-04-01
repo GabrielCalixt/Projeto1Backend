@@ -51,7 +51,6 @@ def show_properties(properties: List[Property]):
 
     return {"properties": result}
 
-
 class PropertyViewSchema(BaseModel):
     """ Define como um imóvel será retornado: imóvel + comentários.
     """
@@ -65,8 +64,7 @@ class PropertyViewSchema(BaseModel):
     rooms: int = 4
     bathrooms: int = 3
 
-
-class PropertyDelSchema(BaseModel):
+class PropertyDeleteSchema(BaseModel):
     """ Define como deve ser a estrutura do dado retornado após uma requisição
         de remoção.
     """

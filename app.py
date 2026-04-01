@@ -1,10 +1,7 @@
 from datetime import datetime
+from urllib.parse import unquote
 from flask_openapi3 import OpenAPI, Info, Tag # type: ignore
 from flask import redirect
-from urllib.parse import unquote
-
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import Column, ForeignKey, String, Integer, DateTime, Float
 
 from model import Session, Property, Owner
 from logger import logger
@@ -15,13 +12,17 @@ info = Info(title="API de Imóveis", version="1.0.0", description="API para gere
 app = OpenAPI(__name__, info=info)
 CORS(app)
 
-# @app.route("/")
-# def home():
-#     return "Hello, Flask!"
-
-home_tag = Tag(name="Documentação", description="Seleção de documentação: Swagger, Redoc ou RapiDoc")
+home_tag = Tag(name="Documentação", description="Documentação em Swagger")
 property_tag = Tag(name="Propriedade", description="Adição, visualização e remoção de propriedades à base")
 owner_tag = Tag(name="Proprietário", description="Adição, visualização e remoção de proprietários à base")
+
+@app.get("/docs", tags=[home_tag])
+def show_docs():
+    """Redireciona para a documentação da API
+
+    Retorna a documentação da API.
+    """
+    return redirect("/openapi")
 
 @app.post('/property', tags=[property_tag], responses={"200": PropertyViewSchema, "409": ErrorSchema, "400": ErrorSchema})
 def add_property(form: PropertySchema):
@@ -81,6 +82,37 @@ def get_properties():
         error_msg = "Não foi possível buscar os itens :/"
         logger.warning(f"Erro ao buscar imóveis, {error_msg}")
         return {"message": error_msg}, 400
+
+@app.delete('/property', tags=[property_tag], responses={"200": PropertyDeleteSchema, "404": ErrorSchema, "400": ErrorSchema})
+def delete_property(query: PropertySearchSchema):
+    """Deleta o imóvel cadastrado na base de dados com o título informado
+
+    Retorna uma representação dos imóvel deletado.
+    """
+    try:
+        # criando conexão com a base
+        session = Session()
+        # buscando o imóvel pelo título
+        property_title = unquote(unquote(query.title))
+        property = session.query(Property).filter(Property.title == property_title).first()
+        if not property:
+            # imóvel não encontrado
+            error_msg = "Imóvel não encontrado"
+            logger.warning(f"Erro ao deletar imóvel '{property_title}', {error_msg}")
+            return {"message": error_msg}, 404
+        # deletando o imóvel
+        session.delete(property)
+        # efetivando o comando de exclusão
+        session.commit()
+        logger.debug(f"Imóvel deletado: '{property_title}'")
+        return show_property(property), 200
+
+    except Exception as e:
+        # caso um erro fora do previsto
+        error_msg = "Não foi possível deletar o item :/"
+        logger.warning(f"Erro ao deletar imóvel '{query.title}', {error_msg}")
+        return {"message": error_msg}, 400
+    
 
 @app.post('/owner', tags=[owner_tag], responses={"200": OwnerViewSchema, "409": ErrorSchema, "400": ErrorSchema})
 def add_owner(form: OwnerSchema):
