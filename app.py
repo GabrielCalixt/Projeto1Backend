@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlite3 import IntegrityError
 from urllib.parse import unquote
 from flask_openapi3 import OpenAPI, Info, Tag # type: ignore
 from flask import redirect
@@ -16,8 +17,8 @@ home_tag = Tag(name="Documentação", description="Documentação em Swagger")
 property_tag = Tag(name="Propriedade", description="Adição, visualização e remoção de propriedades à base")
 owner_tag = Tag(name="Proprietário", description="Adição, visualização e remoção de proprietários à base")
 
-@app.get("/docs", tags=[home_tag])
-def show_docs():
+@app.get("/", tags=[home_tag])
+def home():
     """Redireciona para a documentação da API
 
     Retorna a documentação da API.
@@ -94,7 +95,7 @@ def delete_property(query: PropertySearchSchema):
         session = Session()
         # buscando o imóvel pelo título
         property_title = unquote(unquote(query.title))
-        property = session.query(Property).filter(Property.title == property_title).first()
+        property = session.query(Property).filter(Property.title == property_title).first() # type: ignore
         if not property:
             # imóvel não encontrado
             error_msg = "Imóvel não encontrado"
