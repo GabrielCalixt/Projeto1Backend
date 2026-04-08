@@ -14,13 +14,13 @@ class OwnerSearchSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca. Que será
         feita apenas com base no nome do proprietário.
     """
-    name: str = "John Doe"
+    name: str
 
 
 class ListOwnersSchema(BaseModel):
     """ Define como uma listagem de proprietários será retornada.
     """
-    owners: List[OwnerSchema]
+    owners: List[OwnerViewSchema]
 
 
 def show_owners(owners: List[Owner]):
@@ -40,7 +40,7 @@ def show_owners(owners: List[Owner]):
 
 
 class OwnerViewSchema(BaseModel):
-    """ Define como um proprietário será retornado: proprietário + comentários.
+    """ Define como um proprietário será retornado.
     """
     id: int = 1
     name: str = "John Doe"

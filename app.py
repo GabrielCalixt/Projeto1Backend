@@ -1,5 +1,4 @@
-from datetime import datetime
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from urllib.parse import unquote
 from flask_openapi3 import OpenAPI, Info, Tag # type: ignore
 from flask import redirect
@@ -15,7 +14,7 @@ CORS(app)
 
 home_tag = Tag(name="Documentação", description="Documentação em Swagger")
 property_tag = Tag(name="Propriedade", description="Adição, visualização e remoção de propriedades à base")
-owner_tag = Tag(name="Proprietário", description="Adição, visualização e remoção de proprietários à base")
+owner_tag = Tag(name="Proprietário", description="Adição e visualização de proprietários à base")
 
 @app.get("/", tags=[home_tag])
 def home():
@@ -25,7 +24,58 @@ def home():
     """
     return redirect("/openapi")
 
-@app.post('/property', tags=[property_tag], responses={"200": PropertyViewSchema, "409": ErrorSchema, "400": ErrorSchema})
+@app.post('/owner', tags=[owner_tag], responses={"200": OwnerViewSchema, "409": ErrorSchema409, "400": ErrorSchema400})
+def add_owner(form: OwnerSchema):
+    """Adiciona um novo Proprietário à base de dados
+
+    Retorna uma representação dos proprietários associados.
+    """
+    owner = Owner(
+        name=form.name,
+        email=form.email,
+        phone=form.phone)
+    try:
+        # criando conexão com a base
+        session = Session()
+        # adicionando proprietário
+        session.add(owner)
+        # efetivando o camando de adição de novo item na tabela
+        session.commit()
+        logger.debug(f"Adicionado proprietário de nome: '{owner.name}'")
+        return show_owner(owner), 200
+
+    except IntegrityError as e:
+        error_msg = "Erro de integração ao salvar novo item: " + str(e.orig)
+        logger.warning(f"Erro ao adicionar proprietário '{owner.name}', {error_msg}")
+        return {"message": error_msg}, 409
+
+    except Exception as e:
+        # caso um erro fora do previsto
+        error_msg = "Erro inesperado salvar novo item: " + str(e)
+        logger.warning(f"Erro ao adicionar proprietário '{owner.name}', {error_msg}")
+        return {"message": error_msg}, 400
+    
+@app.get('/owner', tags=[owner_tag], responses={"200": ListOwnersSchema, "400": ErrorSchema400})
+def get_owners():
+    """Faz a busca por todos os proprietários cadastrados na base de dados
+
+    Retorna uma representação dos proprietários associados.
+    """
+    try:
+        # criando conexão com a base
+        session = Session()
+        # buscando todos os proprietários
+        owners = session.query(Owner).all()
+        logger.debug(f"{len(owners)} proprietários encontrados")
+        return show_owners(owners), 200
+
+    except Exception as e:
+        # caso um erro fora do previsto
+        error_msg = "Não foi possível buscar os proprietários: " + str(e)
+        logger.warning(f"Erro ao buscar proprietários, {error_msg}")
+        return {"message": error_msg}, 400
+
+@app.post('/property', tags=[property_tag], responses={"200": PropertyViewSchema, "409": ErrorSchema409, "400": ErrorSchema400})
 def add_property(form: PropertySchema):
     """Adiciona um novo Imóvel à base de dados
 
@@ -53,18 +103,17 @@ def add_property(form: PropertySchema):
         return show_property(property), 200
 
     except IntegrityError as e:
-        # como a duplicidade do nome é a provável razão do IntegrityError
-        error_msg = "Imóvel de mesmo nome já salvo na base :/"
+        error_msg = "Erro de integração ao salvar novo item: " + str(e.orig)
         logger.warning(f"Erro ao adicionar imóvel '{property.title}', {error_msg}")
         return {"message": error_msg}, 409
 
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
+        error_msg = "Erro inesperado salvar novo item: " + str(e)
         logger.warning(f"Erro ao adicionar imóvel '{property.title}', {error_msg}")
         return {"message": error_msg}, 400
 
-@app.get('/property', tags=[property_tag], responses={"200": ListPropertiesSchema, "400": ErrorSchema})
+@app.get('/property', tags=[property_tag], responses={"200": ListPropertiesSchema, "400": ErrorSchema400})
 def get_properties():
     """Faz a busca por todos os imóveis cadastrados na base de dados
 
@@ -80,11 +129,11 @@ def get_properties():
 
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível buscar os itens :/"
+        error_msg = "Não foi possível buscar os imóveis: " + str(e)
         logger.warning(f"Erro ao buscar imóveis, {error_msg}")
         return {"message": error_msg}, 400
 
-@app.delete('/property', tags=[property_tag], responses={"200": PropertyDeleteSchema, "404": ErrorSchema, "400": ErrorSchema})
+@app.delete('/property', tags=[property_tag], responses={"200": PropertyDeleteSchema, "404": ErrorSchema404, "400": ErrorSchema400})
 def delete_property(query: PropertySearchSchema):
     """Deleta o imóvel cadastrado na base de dados com o título informado
 
@@ -110,59 +159,6 @@ def delete_property(query: PropertySearchSchema):
 
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível deletar o item :/"
+        error_msg = "Não foi possível deletar o imóvel: " + str(e)
         logger.warning(f"Erro ao deletar imóvel '{query.title}', {error_msg}")
-        return {"message": error_msg}, 400
-    
-
-@app.post('/owner', tags=[owner_tag], responses={"200": OwnerViewSchema, "409": ErrorSchema, "400": ErrorSchema})
-def add_owner(form: OwnerSchema):
-    """Adiciona um novo Proprietário à base de dados
-
-    Retorna uma representação dos proprietários associados.
-    """
-    owner = Owner(
-        name=form.name,
-        email=form.email,
-        phone=form.phone)
-    try:
-        # criando conexão com a base
-        session = Session()
-        # adicionando proprietário
-        session.add(owner)
-        # efetivando o camando de adição de novo item na tabela
-        session.commit()
-        logger.debug(f"Adicionado proprietário de nome: '{owner.name}'")
-        return show_owner(owner), 200
-
-    except IntegrityError as e:
-        # como a duplicidade do nome é a provável razão do IntegrityError
-        error_msg = str(e)
-        logger.warning(f"Erro ao adicionar proprietário '{owner.name}', {error_msg}")
-        return {"message": error_msg}, 409
-
-    except Exception as e:
-        # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
-        logger.warning(f"Erro ao adicionar proprietário '{owner.name}', {error_msg}")
-        return {"message": error_msg}, 400
-    
-@app.get('/owner', tags=[owner_tag], responses={"200": ListOwnersSchema, "400": ErrorSchema})
-def get_owners():
-    """Faz a busca por todos os proprietários cadastrados na base de dados
-
-    Retorna uma representação dos proprietários associados.
-    """
-    try:
-        # criando conexão com a base
-        session = Session()
-        # buscando todos os proprietários
-        owners = session.query(Owner).all()
-        logger.debug(f"{len(owners)} proprietários encontrados")
-        return show_owners(owners), 200
-
-    except Exception as e:
-        # caso um erro fora do previsto
-        error_msg = "Não foi possível buscar os itens :/"
-        logger.warning(f"Erro ao buscar proprietários, {error_msg}")
         return {"message": error_msg}, 400

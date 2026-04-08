@@ -6,7 +6,7 @@ from datetime import datetime
 from model.property import Property
 
 class PropertySchema(BaseModel):
-    """ Define como uma nova propriedade a ser inserida deve ser representada
+    """ Define como uma nova propriedade a ser inserida deve ser representada.
     """
     title: str
     value: float
@@ -22,13 +22,13 @@ class PropertySearchSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca. Que será
         feita apenas com base no nome da propriedade.
     """
-    title: str = "Casa dos Sonhos"
+    title: str
 
 
 class ListPropertiesSchema(BaseModel):
     """ Define como uma listagem de propriedades será retornada.
     """
-    properties: List[PropertySchema]
+    properties: List[PropertyViewSchema]
 
 
 def show_properties(properties: List[Property]):
@@ -52,7 +52,7 @@ def show_properties(properties: List[Property]):
     return {"properties": result}
 
 class PropertyViewSchema(BaseModel):
-    """ Define como um imóvel será retornado: imóvel + comentários.
+    """ Define como um imóvel será retornado: imóvel.
     """
     title: str = "Casa dos Sonhos"
     value: float = 500000.00
