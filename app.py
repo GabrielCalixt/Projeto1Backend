@@ -28,7 +28,7 @@ def home():
 def add_owner(form: OwnerSchema):
     """Adiciona um novo Proprietário à base de dados
 
-    Retorna uma representação dos proprietários associados.
+    Retorna uma representação do proprietário adicionado.
     """
     owner = Owner(
         name=form.name,
@@ -59,7 +59,7 @@ def add_owner(form: OwnerSchema):
 def get_owners():
     """Faz a busca por todos os proprietários cadastrados na base de dados
 
-    Retorna uma representação dos proprietários associados.
+    Retorna uma representação dos proprietários cadastrados.
     """
     try:
         # criando conexão com a base
@@ -79,7 +79,7 @@ def get_owners():
 def add_property(form: PropertySchema):
     """Adiciona um novo Imóvel à base de dados
 
-    Retorna uma representação dos imóveis associados.
+    Retorna uma representação do imóvel adicionado.
     """
     # converted_due_date = datetime.fromisoformat(form.due_date.replace('Z', '+00:00'))
     property = Property(
@@ -117,7 +117,7 @@ def add_property(form: PropertySchema):
 def get_properties():
     """Faz a busca por todos os imóveis cadastrados na base de dados
 
-    Retorna uma representação dos imóveis associados.
+    Retorna uma representação dos imóveis cadastrados.
     """
     try:
         # criando conexão com a base
